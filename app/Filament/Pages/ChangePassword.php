@@ -13,6 +13,7 @@ use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rules\Password;
 use Illuminate\Validation\ValidationException;
@@ -28,7 +29,6 @@ class ChangePassword extends Page implements HasForms
     protected static bool $shouldRegisterNavigation = true;
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedLockClosed;
     protected static ?string $slug = 'change-password';
-
     protected static ?int $navigationSort = 99;
 
     public ?array $data = [];
@@ -113,6 +113,10 @@ class ChangePassword extends Page implements HasForms
                 'password_changed_at' => now(),
             ]);
 
+            // Clear expired cache so middleware re-evaluates immediately.
+            // default_password_check auto-invalidates via password fingerprint — no forget needed.
+            Cache::forget("password_expired_check:{$user->id}");
+
             $this->form->fill([]);
 
             Notification::make()
@@ -152,7 +156,7 @@ class ChangePassword extends Page implements HasForms
                 ->icon('heroicon-o-x-mark')
                 ->color('gray')
                 ->size('lg')
-                ->url('/staff'),
+                ->url('/'),
         ];
     }
 }

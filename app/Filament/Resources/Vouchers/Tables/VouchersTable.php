@@ -27,6 +27,7 @@ class VouchersTable
                     ->searchable()
                     ->sortable()
                     ->copyable()
+                    ->description(fn ($record) => $record->branch_name ?? null)
                     ->copyMessage('Voucher number copied!')
                     ->color(fn ($record) => match($record->upload->type) {
                         'Journal Voucher' => 'success',
@@ -37,6 +38,7 @@ class VouchersTable
 
                 TextColumn::make('ticket_number')
                     ->label('Ticket Number')
+                    ->searchable()
                     ->sortable()
                     ->description(fn ($record) => $record->upload->type ?? null)
                     ->color(fn ($record) => match($record->upload->type) {
@@ -70,26 +72,19 @@ class VouchersTable
                     ->tooltip(function (TextColumn $column): ?string {
                         $state = $column->getState();
                         return strlen($state) > 30 ? $state : null;
-                    })
-                    ->color('gray'),
-
-                TextColumn::make('branch_name')
-                    ->label('Branch')
-                    ->sortable()
-                    ->searchable()
-                    ->badge()
-                    ->color('gray')
-                    ->toggleable(isToggledHiddenByDefault: true)
-                    ->icon('heroicon-o-building-office'),
+                    }),
 
                 TextColumn::make('ck_number')
                     ->label('Check #')
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true)
                     ->copyable()
-                    ->placeholder('—')
-                    ->badge()
-                    ->color('warning'),
+                    ->placeholder('Not Applicable')
+                    ->formatStateUsing(fn ($state) =>
+                        blank($state) || in_array(strtolower(trim($state)), ['n/a', 'na'])
+                            ? 'Not Applicable'
+                            : $state
+                    ),
 
                 TextColumn::make('prepared_by')
                     ->label('Prepared By')
@@ -196,7 +191,7 @@ class VouchersTable
             ->defaultSort('created_at', 'desc')
             ->striped()
             ->paginated([10, 25, 50, 100])
-            ->defaultPaginationPageOption(25)
+            ->defaultPaginationPageOption(10)
             ->poll('60s') // Auto-refresh every 60 seconds
             ->persistSortInSession()
             ->persistSearchInSession()

@@ -2,6 +2,7 @@
 
 namespace App\Providers\Filament;
 
+use App\Http\Middleware\RequirePasswordChange;
 use Filament\Http\Middleware\Authenticate;
 use BezhanSalleh\FilamentShield\FilamentShieldPlugin;
 use Filament\Http\Middleware\AuthenticateSession;
@@ -51,7 +52,6 @@ class MainPanelProvider extends PanelProvider
             ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\Filament\Widgets')
             ->widgets([
                 AccountWidget::class,
-                FilamentInfoWidget::class,
             ])
             ->middleware([
                 EncryptCookies::class,
@@ -71,6 +71,7 @@ class MainPanelProvider extends PanelProvider
             ->resourceEditPageRedirect('index')
             ->authMiddleware([
                 Authenticate::class,
+                RequirePasswordChange::class,
             ])
             ->spa()
             ->unsavedChangesAlerts();

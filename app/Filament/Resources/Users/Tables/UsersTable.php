@@ -14,6 +14,7 @@ use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Filters\TernaryFilter;
 use Filament\Tables\Table;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Hash;
 
 class UsersTable
@@ -92,11 +93,15 @@ class UsersTable
                     ->modalHeading('Reset Password')
                     ->modalDescription('Are you sure you want to reset the password for this user? It will be set to the default: password123.')
                     ->modalSubmitActionLabel('Yes, reset')
-                    ->visible(fn ($record) => Auth::user()->can('update_user', $record))
+                    // ->visible(fn ($record) => Auth::user()->can('update_user', $record))
                     ->action(function ($record) {
                         $record->update([
                             'password' => Hash::make('password123'),
                         ]);
+                        // Clear middleware caches so checks re-run immediately
+                        Cache::forget("password_expired_check:{$record->id}");
+                        // default_password_check auto-invalidates via password fingerprint — no forget needed
+
                     })
                     ->successNotification(
                         Notification::make()
