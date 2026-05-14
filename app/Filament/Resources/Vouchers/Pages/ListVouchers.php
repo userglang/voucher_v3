@@ -89,7 +89,6 @@ class ListVouchers extends ListRecords
                     TextInput::make('amount')
                         ->label('Amount')
                         ->numeric()
-                        ->step(0.01)
                         ->helperText('Payment amount')
                         ->visible(fn (Get $get): bool => $get('type') === 'Check/Cash Voucher'),
 
